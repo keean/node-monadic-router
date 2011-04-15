@@ -1,11 +1,15 @@
 //------------------------------------------------------------------------
 // Monadic Event Sequencing using ErrorContinuation Monad
 
+exports.id = function(x) {return x;};
+
 var Seq = function(x) {
-    this.run = function(sk ,ek) {return x(sk, ek);};
+    this.run = x; // function(sk, ek) {return x(sk, ek);};
 }
 
-Seq.seq = function() {
+exports.Seq = Seq;
+
+exports.seq = function() {
     var a = arguments;
     return function() {
         var l = a.length;
@@ -96,6 +100,4 @@ Seq.prototype.trap = function(f) {
         });
     })
 };
-
-exports.Seq = Seq;
 
