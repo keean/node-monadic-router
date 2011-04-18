@@ -51,7 +51,7 @@ var router = function(req, res) {
     var url = parse(req.url, true);
     if (url.pathname === '/') {
         var prog = sessions[url.query.continuation];
-        console.log("continuation: " + parse(req.url, true).query.continuation);
+        console.log("continuation: " + url.query.continuation);
         console.log("continuation: " + sessions[parse(req.url, true).query.continuation]);
 
         if (prog === undefined) {
@@ -59,7 +59,6 @@ var router = function(req, res) {
         }
 
         sessions[1] = prog(req, res).run(m.id, m.id);
-        // sessions[1] = seq(form2, ask);
         console.log("sessions[1]: " + sessions[1]);
     } else {
         var prog = m.seq(notFoundHandler);
