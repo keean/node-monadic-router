@@ -1,14 +1,7 @@
 var m = require('./nseq.js');
-
 var parse = require('url').parse;
 
 var sessions = [];
-
-var ask = function(req, res) {
-    return new m.Seq(function(succ, fail) {
-        return succ;
-    });
-};
 
 var form1 = function(req, res) {
     return new m.Seq(function(succ, fail) {
@@ -49,27 +42,25 @@ var notFoundHandler = function(req, res) {
 
 var router = function(req, res) {
     var url = parse(req.url, true);
-    if (url.pathname === '/') {
-        var prog = sessions[url.query.continuation];
-        console.log("continuation: " + url.query.continuation);
-        console.log("continuation: " + sessions[parse(req.url, true).query.continuation]);
+        prog = m.seq(notFoundHandler);
 
-        if (prog === undefined) {
-            prog = m.seq(form1, ask, form2, ask);
-        }
-
-        var next = prog(req, res).run;
-        if (next !== undefined) {
-            sessions[1] = next(m.id, m.id);
-        } else {
-            sessions[1] = undefined;
-        }
-
-        console.log("sessions[1]: " + sessions[1]);
-    } else {
+    //console.log("url: " + url.pathname);
+    if (url.pathname !== '/') {
         var prog = m.seq(notFoundHandler);
-        prog(req, res).run(m.id, m.id);
+        prog(req, res).exec();
+        return;
     }
+
+    //console.log("continuation: " + url.query.continuation);
+
+    var prog = sessions[url.query.continuation];
+    //console.log("continuation: " + sessions[parse(req.url, true).query.continuation]);
+
+    if (prog === undefined) {
+        prog = m.seq(form1, m.getcc, form2);
+    } 
+
+    sessions[1] = prog(req, res).exec();
 };
 
 require('http').createServer(router).listen(8080);

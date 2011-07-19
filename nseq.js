@@ -1,15 +1,19 @@
 //------------------------------------------------------------------------
 // Monadic Event Sequencing using ErrorContinuation Monad
 
-exports.id = function(x) {return x;};
+var id = function(x) {return x;};
+exports.id = id;
 
 var Seq = function(x) {
     this.run = x; // function(sk, ek) {return x(sk, ek);};
-}
-
+};
 exports.Seq = Seq;
 
-exports.seq = function() {
+Seq.prototype.exec = function() {
+    return this.run(function() {}, function() {});
+};
+
+var seq = function() {
     var a = arguments;
     return function() {
         var l = a.length;
@@ -20,9 +24,9 @@ exports.seq = function() {
         return m;
     };
 };
+exports.seq = seq;
 
-/*
-exports.alt = function(cond, ft, ff) {
+var alt = function(cond, ft, ff) {
     var m = this;
     return new Seq(function(sk, ek) {
         return m.run(function() {
@@ -34,8 +38,9 @@ exports.alt = function(cond, ft, ff) {
         }, ek);
     });
 };
+exports.alt = alt;
 
-exports.par = function() {
+var par = function() {
     var a = arguments;
     return function() {
         var l = a.length;
@@ -47,11 +52,11 @@ exports.par = function() {
         return ;
     }
 };
-*/
+exports.par = par;
 
 Seq.prototype.unbox = function() {
     return this.run(id, id);   
-}
+};
 
 // Functor
 Seq.prototype.fmap = function(f) {
@@ -64,12 +69,13 @@ Seq.prototype.fmap = function(f) {
 };
 
 // Functor => Pointed
-Seq.unit = function() {
+var unit = function() {
     var m = this, a = arguments;
     return new Seq(function(sk, ek) {
         return sk.apply(m, a);
     });
 };
+exports.unit = unit;
 
 // Pointed => Applicative
 Seq.prototype.product = function(f) {
@@ -94,12 +100,13 @@ Seq.prototype.bind = function(f) {
 };
 
 // Monoid, Applicative => Alternative, Monad => MonadZero
-Seq.zero = function() {
+var zero = function() {
     var m = this;
     return new Seq(function(sk, ek) {
         return ek.apply(m);
     });
 };
+exports.zero = zero;
 
 // Monoid, Applicative => Alternative, Monad => MonadPlus
 Seq.prototype.plus = function(f) {
@@ -112,12 +119,13 @@ Seq.prototype.plus = function(f) {
 };
 
 // Monad => Error
-Seq.fail = function() {
+var fail = function() {
     var m = this, a = arguments;
     return new Seq(function(sk, ek) {
         return ek.apply(m, a);
     });
 };
+exports.fail = fail;
 
 // Monad => Error
 Seq.prototype.trap = function(f) {
@@ -128,4 +136,24 @@ Seq.prototype.trap = function(f) {
         });
     })
 };
+
+var callcc = function(f) {
+    return new Seq(function(succ, fail) {
+        return f(function() {
+            var m = this, a = arguments;
+            return new Seq(function() {
+                return succ.apply(m, a);
+            });
+        }).run(id, id);
+    });
+};
+exports.callcc = callcc;
+
+var getcc = function() {
+    return callcc(function(k) {
+        return unit(k);
+    });
+};
+exports.getcc = getcc;
+
 
