@@ -13,13 +13,41 @@ exports.seq = function() {
     var a = arguments;
     return function() {
         var l = a.length;
-        var m = a[0].apply(m, arguments);
+        var m = a[0].apply(a[0], arguments);
         for (var i = 1; i < l; i++) {
             m = m.bind(a[i]);
         }
         return m;
     };
 };
+
+/*
+exports.alt = function(cond, ft, ff) {
+    var m = this;
+    return new Seq(function(sk, ek) {
+        return m.run(function() {
+            if (cond && ft) {
+                return ft.run(sk, ek);
+            } else if (ff) {
+                return ff.run(sk, ek);
+            }
+        }, ek);
+    });
+};
+
+exports.par = function() {
+    var a = arguments;
+    return function() {
+        var l = a.length;
+        var m = a[0].apply(m, arguments);
+        var r = [];
+        for (var i = 0; i < l; i++) {
+            r[i] = a[i].apply(m, arguments);
+        }
+        return ;
+    }
+};
+*/
 
 Seq.prototype.unbox = function() {
     return this.run(id, id);   

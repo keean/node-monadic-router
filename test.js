@@ -58,7 +58,13 @@ var router = function(req, res) {
             prog = m.seq(form1, ask, form2, ask);
         }
 
-        sessions[1] = prog(req, res).run(m.id, m.id);
+        var next = prog(req, res).run;
+        if (next !== undefined) {
+            sessions[1] = next(m.id, m.id);
+        } else {
+            sessions[1] = undefined;
+        }
+
         console.log("sessions[1]: " + sessions[1]);
     } else {
         var prog = m.seq(notFoundHandler);
