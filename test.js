@@ -42,20 +42,14 @@ var notFoundHandler = function(req, res) {
 
 var router = function(req, res) {
     var url = parse(req.url, true);
-        prog = m.seq(notFoundHandler);
 
-    //console.log("url: " + url.pathname);
     if (url.pathname !== '/') {
         var prog = m.seq(notFoundHandler);
         prog(req, res).exec();
         return;
     }
 
-    //console.log("continuation: " + url.query.continuation);
-
     var prog = sessions[url.query.continuation];
-    //console.log("continuation: " + sessions[parse(req.url, true).query.continuation]);
-
     if (prog === undefined) {
         prog = m.seq(form1, m.getcc, form2);
     } 
