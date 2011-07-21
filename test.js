@@ -32,7 +32,13 @@ var notFoundHandler = function(req, res) {
     return m.unit(req, res);
 }; 
 
-var noop = function(req, res) {
+var loga = function(req, res) {
+    console.log("A");
+    return m.unit(req, res);
+};
+
+var logb = function(req, res) {
+    console.log("B");
     return m.unit(req, res);
 };
 
@@ -49,8 +55,7 @@ var router = function(req, res) {
 
     var prog = sessions[url.query.continuation];
     if (prog === undefined) {
-        //prog = m.seq(m.par(form1, form2), m.getcc, form2);
-        prog = m.seq(noop, form1, m.getcc, form2);
+        prog = m.seq(m.par(loga, logb), form1, m.getcc, form2);
     } 
 
     sessions[1] = prog(req, res).exec();

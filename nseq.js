@@ -14,36 +14,47 @@ Seq.prototype.exec = function() {
 };
 
 var seq = function() {
-    var a = arguments;
+    var m = arguments;
     return function() {
-        var l = a.length,
-            m = a[0].apply(a[0], arguments);
+        var l = m.length,
+            n = m[0].apply(m[0], arguments);
         for (var i = 1; i < l; i++) {
-            m = m.bind(a[i]);
+            n = n.bind(m[i]);
         }
-        return m;
+        return n;
     };
 };
 exports.seq = seq;
 
 var par = function() {
-    var a = arguments;
-    return new Seq(function(sk, ek) {
-        console.log("PAR");
-        var l = a.length,
-            r = [],
-            x = 0,
-            join = function(v) {
-                console.log("JOIN");
-                r[x++] = v;
-                if (x >= l) {
-                    return sk(r);
+    var t = this, m = arguments;
+    return function() {
+        var a = arguments;
+        return new Seq(function(sk, ek) {
+            console.log("PAR");
+            var s = this;
+            var l = m.length,
+                r = [],
+                z = undefined,
+                x = 0,
+                join = function() {
+                    r = r.concat(Array.prototype.slice.call(arguments));
+                    if (++x >= l) {
+                        console.log("JOIN: " + r);
+                        return sk.apply(s, r);
+                    }
+                };
+            for (var i = 0; i < l; i++) {
+                if (z == undefined) {
+                    z = m[i].apply(t, a).run(join, ek);
+                } else {
+                    m[i].apply(t, a).run(join, ek);
                 }
-            };
-        for (var i = 0; i < l; i++) {
-            a[i].run(join, ek);
-        }
-    });
+            }
+            console.log("CONT: " + z);
+            return z;
+        });
+    };
 };
 exports.par = par;
 
