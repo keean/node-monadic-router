@@ -16,8 +16,8 @@ Seq.prototype.exec = function() {
 var seq = function() {
     var a = arguments;
     return function() {
-        var l = a.length;
-        var m = a[0].apply(a[0], arguments);
+        var l = a.length,
+            m = a[0].apply(a[0], arguments);
         for (var i = 1; i < l; i++) {
             m = m.bind(a[i]);
         }
@@ -25,6 +25,27 @@ var seq = function() {
     };
 };
 exports.seq = seq;
+
+var par = function() {
+    var a = arguments;
+    return new Seq(function(sk, ek) {
+        console.log("PAR");
+        var l = a.length,
+            r = [],
+            x = 0,
+            join = function(v) {
+                console.log("JOIN");
+                r[x++] = v;
+                if (x >= l) {
+                    return sk(r);
+                }
+            };
+        for (var i = 0; i < l; i++) {
+            a[i].run(join, ek);
+        }
+    });
+};
+exports.par = par;
 
 var alt = function(cond, ft, ff) {
     var m = this;
@@ -39,20 +60,6 @@ var alt = function(cond, ft, ff) {
     });
 };
 exports.alt = alt;
-
-var par = function() {
-    var a = arguments;
-    return function() {
-        var l = a.length;
-        var m = a[0].apply(m, arguments);
-        var r = [];
-        for (var i = 0; i < l; i++) {
-            r[i] = a[i].apply(m, arguments);
-        }
-        return ;
-    }
-};
-exports.par = par;
 
 Seq.prototype.unbox = function() {
     return this.run(id, id);   
